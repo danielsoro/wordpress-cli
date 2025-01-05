@@ -2,9 +2,9 @@ use clap::Parser;
 
 #[derive(Parser, Debug)]
 pub enum PostsSubcommand {
-    /// List posts from wordpress
+    /// List posts from WordPress
     List,
-    /// Import posts to wordpress
+    /// Import posts to WordPress
     Import,
 }
 
