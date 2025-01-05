@@ -1,5 +1,6 @@
 use crate::client::{Command, PostCommandList, WordPressOpts};
 use clap::Parser;
+use anyhow::Result;
 
 #[derive(Parser, Debug)]
 pub enum PostsSubcommand {
@@ -16,7 +17,7 @@ pub struct PostCommand {
 }
 
 impl PostCommand {
-    pub async fn run(&self, word_press_client: WordPressOpts) -> Result<(), anyhow::Error> {
+    pub async fn run(&self, word_press_client: WordPressOpts) -> Result<()> {
         match &self.subcommand {
             PostsSubcommand::List => {
                 let posts = PostCommandList::new(word_press_client)

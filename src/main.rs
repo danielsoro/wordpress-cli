@@ -3,6 +3,7 @@ mod client;
 
 use clap::Parser;
 use crate::client::WordPressOpts;
+use anyhow::Result;
 
 /// WordPress CLI help you to manage your WordPress instance from your command line
 #[derive(Parser)]
@@ -13,7 +14,7 @@ pub struct WordpressCli {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>>{
+async fn main() -> Result<()> {
     let args = WordpressCli::parse();
     let word_press_opts = WordPressOpts::new("https://test.latpf.org/wp-json/wp/v2".into());
     match args.subcommand {

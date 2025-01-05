@@ -1,3 +1,4 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 const POST_PATH: &str = "posts";
@@ -25,14 +26,12 @@ pub struct WordPressOpts {
 
 impl WordPressOpts {
     pub fn new(base_url: String) -> Self {
-        WordPressOpts {
-            base_url,
-        }
+        WordPressOpts { base_url }
     }
 }
 
 pub trait Command<T> {
-    async fn execute(&self) -> Result<T, anyhow::Error>;
+    async fn execute(&self) -> Result<T>;
 }
 
 pub struct PostCommandList {
@@ -41,14 +40,22 @@ pub struct PostCommandList {
 
 impl PostCommandList {
     pub fn new(word_press_client: WordPressOpts) -> Self {
-        Self { word_press_opts: word_press_client }
+        Self {
+            word_press_opts: word_press_client,
+        }
     }
 }
 
 impl Command<Vec<Post>> for PostCommandList {
-    async fn execute(&self) -> Result<Vec<Post>, anyhow::Error> {
-        let posts = reqwest::get(format!("{}/{}", self.word_press_opts.base_url.clone(), POST_PATH))
-            .await?.json::<Vec<Post>>().await?;
+    async fn execute(&self) -> Result<Vec<Post>> {
+        let posts = reqwest::get(format!(
+            "{}/{}",
+            self.word_press_opts.base_url.clone(),
+            POST_PATH
+        ))
+        .await?
+        .json::<Vec<Post>>()
+        .await?;
         Ok(posts)
     }
 }
