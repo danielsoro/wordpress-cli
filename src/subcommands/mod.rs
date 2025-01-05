@@ -1,10 +1,12 @@
 use clap::Parser;
-use posts::Posts;
+use posts::PostCommand;
 
 pub mod posts;
 
 #[derive(Parser)]
 pub enum Commands {
     /// Manage post's WordPress
-    Posts(Posts),
+    Posts(PostCommand),
 }
+
+
