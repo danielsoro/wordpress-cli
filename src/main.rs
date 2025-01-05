@@ -2,7 +2,7 @@ mod subcommands;
 mod client;
 
 use clap::Parser;
-use crate::client::WordPressOpts;
+use crate::client::WordPressClientOpts;
 use anyhow::Result;
 
 /// WordPress CLI help you to manage your WordPress instance from your command line
@@ -15,8 +15,9 @@ pub struct WordpressCli {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let word_press_opts = WordPressClientOpts::builder().base_url("https://test.latpf.org/wp-json/wp/v2".into()).build();
+
     let args = WordpressCli::parse();
-    let word_press_opts = WordPressOpts::new("https://test.latpf.org/wp-json/wp/v2".into());
     match args.subcommand {
         subcommands::Commands::Posts(post_command) => post_command.run(word_press_opts).await?,
     }

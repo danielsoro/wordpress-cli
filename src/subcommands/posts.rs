@@ -1,4 +1,4 @@
-use crate::client::{Command, PostCommandList, WordPressOpts};
+use crate::client::{WordPressClientCommand, WordPressPostList, WordPressClientOpts};
 use clap::Parser;
 use anyhow::Result;
 
@@ -17,10 +17,10 @@ pub struct PostCommand {
 }
 
 impl PostCommand {
-    pub async fn run(&self, word_press_client: WordPressOpts) -> Result<()> {
+    pub async fn run(&self, word_press_client_opts: WordPressClientOpts) -> Result<()> {
         match &self.subcommand {
             PostsSubcommand::List => {
-                let posts = PostCommandList::new(word_press_client)
+                let posts = WordPressPostList::new(word_press_client_opts)
                 .execute()
                 .await?;
                 println!("{:#?}", posts);
