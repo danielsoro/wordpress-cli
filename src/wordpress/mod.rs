@@ -5,6 +5,6 @@ pub mod posts;
 
 #[derive(Parser)]
 pub enum Commands {
-    /// Manage posts from wordpress
+    /// Manage posts's Wordpress
     Posts(Posts),
 }
