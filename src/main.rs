@@ -1,16 +1,17 @@
 mod wordpress;
 use clap::Parser;
-use wordpress::posts::PostCommands;
 
+/// Wordpress CLI help you to manage your wordpress instace from your command line
 #[derive(Parser)]
+#[command(version, about)]
 pub struct WordpressCli {
     #[clap(subcommand)]
-    subcommand: PostCommands,
+    subcommand: wordpress::Commands,
 }
 
 fn main() {
     let args = WordpressCli::parse();
     match args.subcommand {
-        PostCommands::Posts(posts) => posts.run(),
+        wordpress::Commands::Posts(posts) => posts.run(),
     }
 }

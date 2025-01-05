@@ -30,9 +30,3 @@ impl Posts {
         println!("Import posts");
     }
 }
-
-#[derive(Parser)]
-pub enum PostCommands {
-    /// Manage posts from wordpress
-    Posts(Posts),
-}
