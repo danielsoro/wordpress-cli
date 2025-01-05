@@ -10,9 +10,12 @@ pub struct WordpressCli {
     subcommand: wordpress::Commands,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let args = WordpressCli::parse();
     match args.subcommand {
-        wordpress::Commands::Posts(posts) => posts.run(),
+        wordpress::Commands::Posts(posts) => posts.run().await?,
     }
+    
+    Ok(())
 }

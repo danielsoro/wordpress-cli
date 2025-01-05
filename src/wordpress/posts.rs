@@ -1,4 +1,20 @@
 use clap::Parser;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Content {
+    pub rendered: String,
+}
+#[derive(Debug, Serialize, Deserialize)]
+struct Title {
+    pub rendered: String,
+}
+#[derive(Debug, Serialize, Deserialize)]
+struct Post {
+    pub id: u32,
+    pub title: Title,
+    pub content: Content,
+}
 
 #[derive(Parser, Debug)]
 pub enum PostsSubcommand {
@@ -15,18 +31,28 @@ pub struct Posts {
 }
 
 impl Posts {
-    pub fn run(&self) {
+    pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>>  {
         match &self.subcommand {
-            PostsSubcommand::List => self.list(),
-            PostsSubcommand::Import => self.import(),
+            PostsSubcommand::List => self.list().await,
+            PostsSubcommand::Import => self.import().await,
         }
     }
 
-    fn list(&self) {
-        println!("List posts");
+    async fn list(&self) -> Result<(), Box<dyn std::error::Error>> {
+        todo!("Should move all HTTP call to a WordPress HTTP Client");
+        let posts = reqwest::get("url")
+            .await?.json::<Vec<Post>>().await?;
+
+        if posts.is_empty() {
+            println!("There are no posts.");
+            return Ok(());
+        }
+
+        println!("{:#?}", posts);
+        Ok(())
     }
 
-    fn import(&self) {
-        println!("Import posts");
+    async fn import(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 }
