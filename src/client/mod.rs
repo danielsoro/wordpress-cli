@@ -1,30 +1,37 @@
-use anyhow::Result;
 use serde::{Deserialize, Serialize};
-
-const POST_PATH: &str = "posts";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Content {
-    pub rendered: String,
+    pub raw: Option<String>,
+    pub rendered: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Title {
-    pub rendered: String,
+    pub raw: Option<String>,
+    pub rendered: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Post {
-    pub id: u32,
+pub struct ImportPostRequest {
     pub title: Title,
     pub content: Content,
+    pub status: String,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PostResponse {
+    pub id: Option<u32>,
+    pub title: Title,
+    pub content: Content,
+    pub status: String,
+}
+
+#[derive(Clone, Debug)]
 pub struct WordPressClientOpts {
-    base_url: String,
-    username: Option<String>,
-    password: Option<String>,
+    pub base_url: String,
+    pub username: Option<String>,
+    pub password: Option<String>,
 }
 
 impl WordPressClientOpts {
@@ -62,43 +69,5 @@ impl WordPressClientOptsBuilder {
             username: self.username,
             password: self.password,
         }
-    }
-}
-
-pub trait WordPressClientCommand<T> {
-    async fn execute(&self) -> Result<T>;
-}
-
-#[derive(Clone)]
-pub struct WordPressPostList {
-    word_press_client_opts: WordPressClientOpts,
-}
-
-impl WordPressPostList {
-    pub fn new(word_press_client: WordPressClientOpts) -> Self {
-        Self {
-            word_press_client_opts: word_press_client,
-        }
-    }
-}
-
-impl WordPressClientCommand<Vec<Post>> for WordPressPostList {
-    async fn execute(&self) -> Result<Vec<Post>> {
-        let post_url = format!("{}/{}", self.word_press_client_opts.base_url, POST_PATH);
-
-        let posts = reqwest::Client::new()
-            .get(post_url)
-            .basic_auth(
-                self.word_press_client_opts
-                    .username.clone()
-                    .unwrap_or("NOT_DEFINED".into()),
-                self.word_press_client_opts
-                    .password.clone()
-            )
-            .send()
-            .await?
-            .json::<Vec<Post>>()
-            .await?;
-        Ok(posts)
     }
 }

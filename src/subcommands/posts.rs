@@ -1,13 +1,94 @@
-use crate::client::{WordPressClientCommand, WordPressPostList, WordPressClientOpts};
-use clap::Parser;
+use crate::client::{Content, ImportPostRequest, PostResponse, Title, WordPressClientOpts};
+use crate::subcommands::WordPressClientCommand;
 use anyhow::Result;
+use clap::Parser;
+
+const POST_PATH: &str = "posts";
+
+#[derive(Clone)]
+pub struct WordPressPostList {
+    word_press_client_opts: WordPressClientOpts,
+}
+
+impl WordPressPostList {
+    pub fn new(word_press_client: WordPressClientOpts) -> Self {
+        Self {
+            word_press_client_opts: word_press_client,
+        }
+    }
+}
+
+impl WordPressClientCommand<Vec<PostResponse>> for WordPressPostList {
+    async fn execute(&self) -> Result<Vec<PostResponse>> {
+        let post_url = format!("{}/{}", self.word_press_client_opts.base_url, POST_PATH);
+
+        let response = reqwest::Client::new()
+            .get(post_url)
+            .basic_auth(
+                self.word_press_client_opts
+                    .username
+                    .clone()
+                    .unwrap_or("NOT_DEFINED".into()),
+                self.word_press_client_opts.password.clone(),
+            )
+            .send()
+            .await?;
+
+        Ok(response.json::<Vec<PostResponse>>().await?)
+    }
+}
+
+pub struct WordPressPostImport {
+    word_press_client_opts: WordPressClientOpts,
+    import_post_request: ImportPostRequest,
+}
+
+impl WordPressPostImport {
+    pub fn new(
+        word_press_client_opts: WordPressClientOpts,
+        import_post_request: ImportPostRequest,
+    ) -> Self {
+        Self {
+            word_press_client_opts,
+            import_post_request,
+        }
+    }
+}
+
+impl WordPressClientCommand<PostResponse> for WordPressPostImport {
+    async fn execute(&self) -> Result<PostResponse> {
+        let post_url = format!("{}/{}", self.word_press_client_opts.base_url, POST_PATH);
+
+        let response = reqwest::Client::new()
+            .post(post_url)
+            .basic_auth(
+                self.word_press_client_opts
+                    .username
+                    .clone()
+                    .unwrap_or("NOT_DEFINED".into()),
+                self.word_press_client_opts.password.clone(),
+            )
+            .json(&self.import_post_request)
+            .send()
+            .await?;
+
+        Ok(response.json::<PostResponse>().await?)
+    }
+}
 
 #[derive(Parser, Debug)]
 pub enum PostsSubcommand {
     /// List posts from WordPress
     List,
     /// Import posts to WordPress
-    Import,
+    Create {
+        /// The post's title
+        #[arg(value_name = "title", short = 't', long = "title")]
+        title: String,
+        /// The post's content
+        #[arg(value_name = "content", short = 'c', long = "content")]
+        content: String,
+    },
 }
 
 #[derive(Parser)]
@@ -21,12 +102,31 @@ impl PostCommand {
         match &self.subcommand {
             PostsSubcommand::List => {
                 let posts = WordPressPostList::new(word_press_client_opts)
-                .execute()
-                .await?;
+                    .execute()
+                    .await?;
                 println!("{:#?}", posts);
                 Ok(())
             }
-            PostsSubcommand::Import => Ok(()),
+            PostsSubcommand::Create { title, content } => {
+                let post = WordPressPostImport::new(
+                    word_press_client_opts,
+                    ImportPostRequest {
+                        title: Title {
+                            raw: Some(title.into()),
+                            rendered: None,
+                        },
+                        content: Content {
+                            raw: Some(content.into()),
+                            rendered: None,
+                        },
+                        status: "publish".to_string(),
+                    },
+                )
+                .execute()
+                .await?;
+                println!("{:#?}", post);
+                Ok(())
+            }
         }
     }
 }
