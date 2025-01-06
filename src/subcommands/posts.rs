@@ -38,12 +38,12 @@ impl WordPressClientCommand<Vec<Post>> for WordPressPostList {
     }
 }
 
-pub struct WordPressPostImport {
+pub struct WordPressPostCreat {
     word_press_client_opts: WordPressClientOpts,
     post: Post,
 }
 
-impl WordPressPostImport {
+impl WordPressPostCreat {
     pub fn new(word_press_client_opts: WordPressClientOpts, post: Post) -> Self {
         Self {
             word_press_client_opts,
@@ -52,7 +52,7 @@ impl WordPressPostImport {
     }
 }
 
-impl WordPressClientCommand<Post> for WordPressPostImport {
+impl WordPressClientCommand<Post> for WordPressPostCreat {
     async fn execute(&self) -> Result<Post> {
         let post_url = format!("{}/{}", self.word_press_client_opts.base_url, POST_PATH);
 
@@ -105,7 +105,7 @@ impl PostCommand {
                 Ok(())
             }
             PostsSubcommand::Create { title, content } => {
-                let post = WordPressPostImport::new(
+                let post = WordPressPostCreat::new(
                     word_press_client_opts,
                     Post {
                         id: None,
