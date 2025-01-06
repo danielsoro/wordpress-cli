@@ -1,4 +1,4 @@
-use crate::client::{Content, ImportPostRequest, PostResponse, Title, WordPressClientOpts};
+use crate::client::{Content, Post, Title, WordPressClientOpts};
 use crate::subcommands::WordPressClientCommand;
 use anyhow::Result;
 use clap::Parser;
@@ -18,8 +18,8 @@ impl WordPressPostList {
     }
 }
 
-impl WordPressClientCommand<Vec<PostResponse>> for WordPressPostList {
-    async fn execute(&self) -> Result<Vec<PostResponse>> {
+impl WordPressClientCommand<Vec<Post>> for WordPressPostList {
+    async fn execute(&self) -> Result<Vec<Post>> {
         let post_url = format!("{}/{}", self.word_press_client_opts.base_url, POST_PATH);
 
         let response = reqwest::Client::new()
@@ -34,29 +34,26 @@ impl WordPressClientCommand<Vec<PostResponse>> for WordPressPostList {
             .send()
             .await?;
 
-        Ok(response.json::<Vec<PostResponse>>().await?)
+        Ok(response.json::<Vec<Post>>().await?)
     }
 }
 
 pub struct WordPressPostImport {
     word_press_client_opts: WordPressClientOpts,
-    import_post_request: ImportPostRequest,
+    post: Post,
 }
 
 impl WordPressPostImport {
-    pub fn new(
-        word_press_client_opts: WordPressClientOpts,
-        import_post_request: ImportPostRequest,
-    ) -> Self {
+    pub fn new(word_press_client_opts: WordPressClientOpts, post: Post) -> Self {
         Self {
             word_press_client_opts,
-            import_post_request,
+            post,
         }
     }
 }
 
-impl WordPressClientCommand<PostResponse> for WordPressPostImport {
-    async fn execute(&self) -> Result<PostResponse> {
+impl WordPressClientCommand<Post> for WordPressPostImport {
+    async fn execute(&self) -> Result<Post> {
         let post_url = format!("{}/{}", self.word_press_client_opts.base_url, POST_PATH);
 
         let response = reqwest::Client::new()
@@ -68,11 +65,11 @@ impl WordPressClientCommand<PostResponse> for WordPressPostImport {
                     .unwrap_or("NOT_DEFINED".into()),
                 self.word_press_client_opts.password.clone(),
             )
-            .json(&self.import_post_request)
+            .json(&self.post)
             .send()
             .await?;
 
-        Ok(response.json::<PostResponse>().await?)
+        Ok(response.json::<Post>().await?)
     }
 }
 
@@ -110,7 +107,8 @@ impl PostCommand {
             PostsSubcommand::Create { title, content } => {
                 let post = WordPressPostImport::new(
                     word_press_client_opts,
-                    ImportPostRequest {
+                    Post {
+                        id: None,
                         title: Title {
                             raw: Some(title.into()),
                             rendered: None,

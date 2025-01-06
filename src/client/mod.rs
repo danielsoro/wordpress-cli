@@ -13,14 +13,7 @@ pub struct Title {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ImportPostRequest {
-    pub title: Title,
-    pub content: Content,
-    pub status: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PostResponse {
+pub struct Post {
     pub id: Option<u32>,
     pub title: Title,
     pub content: Content,
