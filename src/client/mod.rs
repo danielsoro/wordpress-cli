@@ -20,6 +20,7 @@ pub struct Post {
     pub content: Content,
 }
 
+#[derive(Clone)]
 pub struct WordPressClientOpts {
     base_url: String,
     username: Option<String>,
@@ -31,7 +32,6 @@ impl WordPressClientOpts {
         WordPressClientOptsBuilder::default()
     }
 }
-
 
 #[derive(Default)]
 pub struct WordPressClientOptsBuilder {
@@ -57,15 +57,19 @@ impl WordPressClientOptsBuilder {
     }
 
     pub fn build(self) -> WordPressClientOpts {
-        WordPressClientOpts { base_url: self.base_url, username: self.username, password: self.password }
+        WordPressClientOpts {
+            base_url: self.base_url,
+            username: self.username,
+            password: self.password,
+        }
     }
 }
-
 
 pub trait WordPressClientCommand<T> {
     async fn execute(&self) -> Result<T>;
 }
 
+#[derive(Clone)]
 pub struct WordPressPostList {
     word_press_client_opts: WordPressClientOpts,
 }
@@ -80,14 +84,21 @@ impl WordPressPostList {
 
 impl WordPressClientCommand<Vec<Post>> for WordPressPostList {
     async fn execute(&self) -> Result<Vec<Post>> {
-        let posts = reqwest::get(format!(
-            "{}/{}",
-            self.word_press_client_opts.base_url.clone(),
-            POST_PATH
-        ))
-        .await?
-        .json::<Vec<Post>>()
-        .await?;
+        let post_url = format!("{}/{}", self.word_press_client_opts.base_url, POST_PATH);
+
+        let posts = reqwest::Client::new()
+            .get(post_url)
+            .basic_auth(
+                self.word_press_client_opts
+                    .username.clone()
+                    .unwrap_or("NOT_DEFINED".into()),
+                self.word_press_client_opts
+                    .password.clone()
+            )
+            .send()
+            .await?
+            .json::<Vec<Post>>()
+            .await?;
         Ok(posts)
     }
 }
